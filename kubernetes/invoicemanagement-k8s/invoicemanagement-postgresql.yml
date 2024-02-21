@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: invoicemanagement-postgresql-pvc
+    namespace: billmanagement
+spec:
+    accessModes:
+        - ReadWriteOnce
+    resources:
+        requests:
+            storage: 2Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+    name: invoicemanagement-postgresql
+    namespace: billmanagement
+    labels:
+        app: invoicemanagement-postgresql
+type: Opaque
+data:
+    postgresql-password: NjEwNDI3YzU1MTY3MTM4ODViNTY0ZTlkMDkxYTYyMjMxODI2MTI2M2M5OWVkNGMxZjc3Zjk5NGFiNTIz
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: invoicemanagement-postgresql
+    namespace: billmanagement
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: invoicemanagement-postgresql
+    template:
+        metadata:
+            labels:
+                app: invoicemanagement-postgresql
+        spec:
+            volumes:
+                - name: data
+                  persistentVolumeClaim:
+                      claimName: invoicemanagement-postgresql-pvc
+            containers:
+                - name: postgres
+                  image: postgres:15.2
+                  env:
+                      - name: POSTGRES_USER
+                        value: invoicemanagement
+                      - name: POSTGRES_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: invoicemanagement-postgresql
+                                key: postgresql-password
+                      - name: PGPORT
+                        value: '9021'
+                  ports:
+                      - containerPort: 9021
+                  volumeMounts:
+                      - name: data
+                        mountPath: /var/lib/postgresql/data
+                        subPath: postgres
+                  resources:
+                      requests:
+                          memory: '512Mi'
+                          cpu: '500m'
+                      limits:
+                          memory: '1Gi'
+                          cpu: '1'
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: invoicemanagement-postgresql
+    namespace: billmanagement
+spec:
+    selector:
+        app: invoicemanagement-postgresql
+    ports:
+        - port: 9021

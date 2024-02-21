@@ -1,0 +1,28 @@
+commonLabels:
+    app.kubernetes.io/genereted-by: JHipster
+
+namespace: billmanagement
+
+resources:
+    - namespace.yml
+    # Individual apps
+    - ui-k8s/ui-deployment.yml
+    - ui-k8s/ui-service.yml
+    - customermanagement-k8s/customermanagement-deployment.yml
+    - customermanagement-k8s/customermanagement-service.yml
+    - customermanagement-k8s/customermanagement-postgresql.yml
+    - invoicemanagement-k8s/invoicemanagement-deployment.yml
+    - invoicemanagement-k8s/invoicemanagement-service.yml
+    - invoicemanagement-k8s/invoicemanagement-postgresql.yml
+    - paymentmanagement-k8s/paymentmanagement-deployment.yml
+    - paymentmanagement-k8s/paymentmanagement-service.yml
+    - paymentmanagement-k8s/paymentmanagement-postgresql.yml
+    # keycloak
+    - keycloak-k8s/keycloak-configmap.yml
+    - keycloak-k8s/keycloak-postgresql.yml
+    - keycloak-k8s/keycloak.yml
+    # service discovery eureka/consul
+    - registry-k8s/jhipster-registry.yml
+    - registry-k8s/application-configmap.yml
+
+patchesJson6902:

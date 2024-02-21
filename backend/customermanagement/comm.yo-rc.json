@@ -1,0 +1,8 @@
+[
+  {
+    "client": "ui",
+    "server": "customermanagement",
+    "type": "sync",
+    "framework": "rest-api"
+  }
+]

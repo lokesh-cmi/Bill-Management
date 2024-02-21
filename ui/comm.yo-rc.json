@@ -1,0 +1,20 @@
+[
+  {
+    "client": "ui",
+    "server": "customermanagement",
+    "type": "sync",
+    "framework": "rest-api"
+  },
+  {
+    "client": "ui",
+    "server": "invoicemanagement",
+    "type": "sync",
+    "framework": "rest-api"
+  },
+  {
+    "client": "ui",
+    "server": "paymentmanagement",
+    "type": "sync",
+    "framework": "rest-api"
+  }
+]

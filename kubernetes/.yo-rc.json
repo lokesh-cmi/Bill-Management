@@ -1,0 +1,23 @@
+{
+    "generator-jhipster": {
+        "appsFolders": ["ui", "customermanagement", "invoicemanagement", "paymentmanagement"],
+        "clusteredDbApps": [],
+        "deploymentType": "kubernetes",
+        "directoryPath": "../",
+        "dockerPushCommand": "docker push",
+        "dockerRepositoryName": "lokeshkarakala",
+        "ingressDomain": "",
+        "istio": false,
+        "jhipsterVersion": "7.10.0",
+        "jwtSecretKey": "MWIzOGQ0NmU3NGI1NDQ2YWE0ZjE5MDY0MGJlYzlmMWJhODc2NDRmZTdhZTMxMzMzYThiZmUyNTJlZDdkZTA2ZWQ4MGUzMDVkZWI3YmI1MmViMzg3ZTQ0MmI5ZTFlYjUzYTYwMw==",
+        "kubernetesNamespace": "billmanagement",
+        "kubernetesServiceType": "LoadBalancer",
+        "kubernetesStorageClassName": "",
+        "kubernetesStorageProvisioner": "",
+        "kubernetesUseDynamicStorage": true,
+        "minikube": true,
+        "monitoring": "istio",
+        "serviceDiscoveryType": "eureka",
+        "skipJhipsterDependencies": true
+    }
+}

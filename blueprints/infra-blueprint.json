@@ -1,0 +1,12 @@
+{
+    "projectId": "billmanagement2-1h8rUmD32",
+    "projectName": "billManagementFinal",
+    "cloudProvider": "minikube",
+    "orchestration": "kubernetes",
+    "kubernetesNamespace": "billManagement",
+    "ingress": "istio",
+    "dockerRepositoryName": "lokeshkarakala",
+    "monitoring": "true",
+    "enableECK": "true",
+    "auth": "true"
+}

@@ -1,0 +1,147 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: customermanagement
+    namespace: billmanagement
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: customermanagement
+            version: 'v1'
+    template:
+        metadata:
+            labels:
+                app: customermanagement
+                version: 'v1'
+        spec:
+            affinity:
+                podAntiAffinity:
+                    preferredDuringSchedulingIgnoredDuringExecution:
+                        - podAffinityTerm:
+                              labelSelector:
+                                  matchExpressions:
+                                      - key: app
+                                        operator: In
+                                        values:
+                                            - customermanagement
+                              topologyKey: kubernetes.io/hostname
+                          weight: 100
+            initContainers:
+                - name: init-ds
+                  image: busybox:latest
+                  command:
+                      - '/bin/sh'
+                      - '-c'
+                      - |
+                          while true
+                          do
+                            rt=$(nc -z -w 1 customermanagement-postgresql 9011)
+                            if [ $? -eq 0 ]; then
+                              echo "DB is UP"
+                              break
+                            fi
+                            echo "DB is not yet reachable;sleep for 10s before retry"
+                            sleep 10
+                          done
+            containers:
+                - name: customermanagement-app
+                  image: lokeshkarakala/customermanagement
+                  env:
+                      - name: SPRING_PROFILES_ACTIVE
+                        value: prod,api-docs
+                      - name: JHIPSTER_CORS_ALLOWED_ORIGINS
+                        value: 'http://ui.billmanagement.,http://customermanagement.billmanagement.,http://invoicemanagement.billmanagement.,http://paymentmanagement.billmanagement.'
+                      - name: OIDC_URL
+                        value: http://keycloak.billmanagement./realms/jhipster
+
+                      - name: MINIKUBE_IP
+                        valueFrom:
+                            configMapKeyRef:
+                                name: minikube-cm
+                                key: minikube-ip
+                      - name: SPRING_CLOUD_CONFIG_URI
+                        value: http://admin:${jhipster.registry.password}@jhipster-registry.billmanagement.svc.cluster.local:8761/config
+                      - name: JHIPSTER_REGISTRY_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: registry-secret
+                                key: registry-admin-password
+                      - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+                        value: http://admin:${jhipster.registry.password}@jhipster-registry.billmanagement.svc.cluster.local:8761/eureka/
+                      - name: SPRING_DATASOURCE_URL
+                        value: jdbc:postgresql://customermanagement-postgresql.billmanagement.svc.cluster.local:9011/customermanagement
+                      - name: SPRING_DATASOURCE_USERNAME
+                        value: customermanagement
+                      - name: SPRING_DATASOURCE_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: customermanagement-postgresql
+                                key: postgresql-password
+                      - name: SPRING_LIQUIBASE_URL
+                        value: jdbc:postgresql://customermanagement-postgresql.billmanagement.svc.cluster.local:9011/customermanagement
+                      - name: MANAGEMENT_TRACING_BAGGAGE_REMOTE_FIELDS
+                        value: 'x-request-id,x-ot-span-context'
+                      # Custom trustStore required when using Let's Encrypt staging
+                      - name: JAVA_OPTS
+                        value: ' -Xmx256m -Xms256m'
+                      - name: SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER_URI
+                        value: http://$(MINIKUBE_IP):30001/realms/jhipster
+                      - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_OIDC_CLIENT_ID
+                        value: internal
+                      - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_OIDC_CLIENT_SECRET
+                        value: internal
+                      - name: SERVER_SHUTDOWN
+                        value: graceful
+                      # Custom trustStore required when using Let's Encrypt staging
+                      # volumeMounts:
+                      #  - name: java-truststore
+                      #    mountPath: /etc/pki/java
+                      ## GO ##
+                      - name: DB_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: customermanagement-postgresql
+                                key: postgresql-password
+                      - name: DB_URL
+                        value: postgresql://customermanagement:$(DB_PASSWORD)@customermanagement-postgresql.billmanagement.svc.cluster.local:9011/customermanagement
+                      - name: KEYCLOAK_URL
+                        value: http://$(MINIKUBE_IP):30001/realms/jhipster
+                      - name: SERVICE_REGISTRY_URL
+                        value: http://admin:$(JHIPSTER_REGISTRY_PASSWORD)@jhipster-registry.billmanagement.svc.cluster.local:8761/eureka/apps/
+                        ## GO MICRO ##
+                      - name: GO_MICRO_ACTIVE_PROFILE
+                        value: prod
+                      - name: GO_MICRO_DB_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: customermanagement-postgresql
+                                key: postgresql-password
+                      - name: GO_MICRO_DB_URL
+                        value: postgresql://customermanagement:$(GO_MICRO_DB_PASSWORD)@customermanagement-postgresql.billmanagement.svc.cluster.local:9011/customermanagement
+                      - name: GO_MICRO_KEYCLOAK_URL
+                        value: http://$(MINIKUBE_IP):30001
+                      - name: GO_MICRO_SERVICE_REGISTRY_URL
+                        value: http://admin:$(JHIPSTER_REGISTRY_PASSWORD)@jhipster-registry.billmanagement.svc.cluster.local:8761/eureka/apps/
+                  resources:
+                      requests:
+                          memory: '1Gi'
+                          cpu: '500m'
+                      limits:
+                          memory: '2Gi'
+                          cpu: '1'
+                  ports:
+                      - name: http
+                        containerPort: 9010
+                  readinessProbe:
+                      httpGet:
+                          path: /management/health/readiness
+                          port: http
+                      initialDelaySeconds: 20
+                      periodSeconds: 15
+                      failureThreshold: 6
+                  livenessProbe:
+                      httpGet:
+                          path: /management/health/liveness
+                          port: http
+                      initialDelaySeconds: 120

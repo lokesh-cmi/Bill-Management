@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: ui
+    namespace: billmanagement
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: ui
+            version: 'v1'
+    template:
+        metadata:
+            labels:
+                app: ui
+                version: 'v1'
+        spec:
+            affinity:
+                podAntiAffinity:
+                    preferredDuringSchedulingIgnoredDuringExecution:
+                        - podAffinityTerm:
+                              labelSelector:
+                                  matchExpressions:
+                                      - key: app
+                                        operator: In
+                                        values:
+                                            - ui
+                              topologyKey: kubernetes.io/hostname
+                          weight: 100
+            containers:
+                - name: ui-app
+                  image: lokeshkarakala/ui
+                  resources:
+                      requests:
+                          memory: '1Gi'
+                          cpu: '500m'
+                      limits:
+                          memory: '2Gi'
+                          cpu: '1'
+                  ports:
+                      - name: http
+                        containerPort: 80

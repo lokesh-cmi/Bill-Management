@@ -1,0 +1,109 @@
+application {
+    config {
+        baseName ui
+        applicationType gateway
+        packageName ui
+        authenticationType oauth2
+        serverPort 9000
+        databaseType no
+        prodDatabaseType no
+        logManagementType eck
+        serviceDiscoveryType eureka
+        clientFramework react
+        blueprint [react]
+    }
+}
+ application {
+    config {
+        baseName customermanagement
+        applicationType microservice
+        packageName com.bill.customer
+        authenticationType oauth2
+        serverPort 9010
+        databaseType sql
+        devDatabaseType postgresql
+        prodDatabaseType postgresql
+        databasePort 9011
+        logManagementType eck
+        serviceDiscoveryType eureka
+        clientFramework no
+        blueprint [gomicro]
+    }
+}
+ application {
+    config {
+        baseName invoicemanagement
+        applicationType microservice
+        packageName com.bill.invoice
+        authenticationType oauth2
+        serverPort 9020
+        databaseType sql
+        devDatabaseType postgresql
+        prodDatabaseType postgresql
+        databasePort 9021
+        logManagementType eck
+        serviceDiscoveryType eureka
+        clientFramework no
+        blueprint [gomicro]
+    }
+}
+ application {
+    config {
+        baseName paymentmanagement
+        applicationType microservice
+        packageName com.bill.payment
+        authenticationType oauth2
+        serverPort 9030
+        databaseType sql
+        devDatabaseType postgresql
+        prodDatabaseType postgresql
+        databasePort 9031
+        logManagementType eck
+        serviceDiscoveryType eureka
+        clientFramework no
+        blueprint [gomicro]
+    }
+}
+ 
+communication {
+    client "ui"
+    server "customermanagement"
+    type "sync"
+    framework "rest-api"
+}
+
+ 
+communication {
+    client "ui"
+    server "invoicemanagement"
+    type "sync"
+    framework "rest-api"
+}
+
+ 
+communication {
+    client "ui"
+    server "paymentmanagement"
+    type "sync"
+    framework "rest-api"
+}
+
+ 
+communication {
+    client "paymentmanagement"
+    server "invoicemanagement"
+    type "sync"
+    framework "rest-api"
+}
+
+ deployment {
+    deploymentType kubernetes
+    appsFolders [ui,customermanagement,invoicemanagement,paymentmanagement]
+    dockerRepositoryName "lokeshkarakala"
+    kubernetesNamespace billmanagement
+    serviceDiscoveryType eureka
+    kubernetesServiceType LoadBalancer
+    istio false
+    kubernetesUseDynamicStorage true
+    monitoring istio
+}

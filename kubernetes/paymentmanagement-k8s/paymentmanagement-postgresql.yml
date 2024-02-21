@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: paymentmanagement-postgresql-pvc
+    namespace: billmanagement
+spec:
+    accessModes:
+        - ReadWriteOnce
+    resources:
+        requests:
+            storage: 2Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+    name: paymentmanagement-postgresql
+    namespace: billmanagement
+    labels:
+        app: paymentmanagement-postgresql
+type: Opaque
+data:
+    postgresql-password: NjEwNDI3YzU1MTY3MTM4ODViNTY0ZTlkMDkxYTYyMjMxODI2MTI2M2M5OWVkNGMxZjc3Zjk5NGFiNTIz
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: paymentmanagement-postgresql
+    namespace: billmanagement
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: paymentmanagement-postgresql
+    template:
+        metadata:
+            labels:
+                app: paymentmanagement-postgresql
+        spec:
+            volumes:
+                - name: data
+                  persistentVolumeClaim:
+                      claimName: paymentmanagement-postgresql-pvc
+            containers:
+                - name: postgres
+                  image: postgres:15.2
+                  env:
+                      - name: POSTGRES_USER
+                        value: paymentmanagement
+                      - name: POSTGRES_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: paymentmanagement-postgresql
+                                key: postgresql-password
+                      - name: PGPORT
+                        value: '9031'
+                  ports:
+                      - containerPort: 9031
+                  volumeMounts:
+                      - name: data
+                        mountPath: /var/lib/postgresql/data
+                        subPath: postgres
+                  resources:
+                      requests:
+                          memory: '512Mi'
+                          cpu: '500m'
+                      limits:
+                          memory: '1Gi'
+                          cpu: '1'
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: paymentmanagement-postgresql
+    namespace: billmanagement
+spec:
+    selector:
+        app: paymentmanagement-postgresql
+    ports:
+        - port: 9031

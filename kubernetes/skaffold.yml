@@ -1,0 +1,21 @@
+apiVersion: skaffold/v1
+kind: Config
+build:
+    artifacts:
+        - image: lokeshkarakala/ui
+          context: ../ui
+          jib: {}
+        - image: lokeshkarakala/customermanagement
+          context: ../customermanagement
+          jib: {}
+        - image: lokeshkarakala/invoicemanagement
+          context: ../invoicemanagement
+          jib: {}
+        - image: lokeshkarakala/paymentmanagement
+          context: ../paymentmanagement
+          jib: {}
+    tagPolicy:
+        envTemplate:
+            template: '{{.IMAGE_NAME}}:latest'
+deploy:
+    kustomize: {}
